@@ -28,8 +28,8 @@ namespace tan4it
         void Print(Graphics g, GamePoint point);
     }
 
-    delegate System.Windows.Vector WhereToGoTankStrategy(Tank tank);//Стратегия выбора направления и скорости движения
-    delegate int WhereToShootTankStrategy(Tank tank);//Стратегия выбора направления пушки
+    delegate void WhereToGoTankStrategy(Tank tank, int timeDelta);//Стратегия выбора направления и скорости движения
+    delegate void WhereToShootTankStrategy(Tank tank, int timeDelta);//Стратегия выбора направления пушки
 
     class DefaultTankChassis : TankChassis
     {
@@ -39,7 +39,8 @@ namespace tan4it
         }
         public void Print(Graphics g, GamePoint point)
         {
-            g.DrawImage(Properties.Resources.defaultTankChassis, (float)point.X, (float)point.Y, 20,40);
+            Image chassisImage = ImagesTools.RotateImage(Properties.Resources.defaultTankChassis, Angle);
+            g.DrawImage(chassisImage, (float)point.X, (float)point.Y, 20,40);
             //g.DrawRectangle(new Pen(Brushes.Black), (float)point.X, (float)point.Y, 10, 10);
         }
     }
@@ -58,6 +59,18 @@ namespace tan4it
 
     class Tank : GameObject
     {
+        public bool InMotion
+        {
+            get;
+            set;
+        }
+
+        public int Id
+        {
+            get;
+            private set;
+        }
+
         public GameObjects gameObjects
         {
             get; set;
@@ -76,8 +89,9 @@ namespace tan4it
         WhereToGoTankStrategy whereToGoTankStrategy;
         WhereToShootTankStrategy whereToShootTankStrategy;
 
-        public Tank(int health, GameObjects gameObjects) : base(health)
+        public Tank(int health, GameObjects gameObjects, int id) : base(health)
         {
+            Id = id;
             this.gameObjects = gameObjects;
             Position = new GamePoint(100, 100);
         }
@@ -95,7 +109,8 @@ namespace tan4it
 
         public override void Update(int timeDelta)
         {
-            Position += whereToGoTankStrategy(this) * timeDelta/10;
+            whereToGoTankStrategy(this, timeDelta);
+            //whereToShootTankStrategy(this, timeDelta);
         }
 
         public void setWhereToShootTankStrategy(WhereToShootTankStrategy wtsts)
